@@ -1,9 +1,12 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useContext, useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import Cookies from 'js-cookie';
 import axios from 'axios'
 // import { io } from 'socket.io-client'
 // import { SOCKET_URL as socketURL } from './config'
+import CustomImageLoader from 'react-custom-image-loader.'
+import grains from '../assets/icons/grain.png'
 
 const UserContext = React.createContext()
 
@@ -21,19 +24,8 @@ export function UserProvider({ children }) {
     const cookies = Cookies; //constructor method deprecated
     const checkTokenCookie = cookies.get("isLoggedIn");
     const [currentUser, setCurrentUser] = useState()
-
-    // const [userData, setUserData] = useState({
-    //     imgUrl: "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541",
-    //     name: "Test User",
-    //     region: "Punjab",
-    //     landArea: "9 acre",
-    //     crop: "Wheat",
-    //     // walletAddress: "0x2ee4961905E3c9B6eC890d5F919224Ad6BD87637"
-    //     // walletAddress: "0xbe48d73a8244dcdaa359be58caba27e8cde0d280"
-    //     walletAddress: "0x879005ce3b64a880e1512d759cecb1bd857590f8"
-    // })
     const [userData, setUserData] = useState()
-
+    const [userCampaigns, setUserCampaigns] = useState()
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
 
@@ -104,9 +96,10 @@ export function UserProvider({ children }) {
 
     async function checkToken() {
         setLoading(true)
-        const { data } = await axios.post("refreshToken", {})
-        console.log("Checking refreshtoken " + cookies.get("isLoggedIn") + "-----", data);
-        if (data.error == false) {
+        const response = await axios.post("refreshToken", {})
+        if (response.hasOwnProperty("data")) {
+            const data = response.data
+            console.log("Checking refreshtoken " + cookies.get("isLoggedIn") + "-----", data);
             setCurrentUser(data.userId)
             axios.defaults.headers.common['Authorization'] = `${data['accessToken']}`
             setLoading(false)
@@ -163,8 +156,74 @@ export function UserProvider({ children }) {
         setLoading(false)
     }
 
+    async function getUserCampaigns() {
+        try {
+            setLoading(true)
+            if (!currentUser) return
+            const response = await axios.post("/user/campaigns", { userId: currentUser })
+            if (response.hasOwnProperty("data")) {
+                console.log(response.data)
+                setUserCampaigns(response.data.data)
+            } else {
+                console.log(response)
+                throw response
+            }
+        } catch (error) {
+            throw error
+        }
+        setLoading(false)
+    }
+
     //////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////USER FUNCTIONS END HERE//////////////////////////////
+    ////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////
+    //////////////////////////WALLET FUNCTIONS START HERE//////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////
+
+    async function getOrderId(purchaseData) {
+        try {
+            const response = await axios.post("/wallet/order/create", purchaseData)
+            if(response.data.error){
+                return response.data
+            }
+            if(response.hasOwnProperty("data"))
+                return response.data.data
+            else throw response
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async function verifyPayment(paymentData) {
+        try {
+            const response = await axios.post("/wallet/payment/verify", paymentData)
+            if(response.hasOwnProperty("data"))
+                return response.data.data
+            else throw response
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async function getProductData(prodId) {
+        try {
+            const response = await axios.get("/store/products/" + prodId)
+            if (response.hasOwnProperty("data")) {
+                console.log(response.data)
+                return response.data.data
+            } else {
+                console.log(response)
+                throw response
+            }
+        } catch (error) {
+            throw error
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////WALLET FUNCTIONS END HERE//////////////////////////////
     ////////////////////////////////////////////////////////////
 
     useEffect(() => {
@@ -172,12 +231,12 @@ export function UserProvider({ children }) {
             checkToken();
         else setLoading(false)
         console.log(checkTokenCookie);
-        // if(currentUser) getUserData(currentUser)
+        // if(!userData) getUserData()
     }, [checkTokenCookie]);
 
 
     const value = {
-        loading,
+        loadingUser:loading,
         currentUser,
         userData,
         theme,
@@ -187,12 +246,16 @@ export function UserProvider({ children }) {
         signup,
         getActiveCampaign,
         checkTokenCookie,
-        getUserData
+        getUserData,
+        getUserCampaigns,
+        userCampaigns,
+        getOrderId,
+        verifyPayment
     }
     return (
         <UserContext.Provider value={value}>
             {
-                loading ? <>Loading...</>
+                loading ? <> <div className='d-flex w-100 vh-100 justify-content-center align-items-center'><CustomImageLoader image={grains} animationType={'float'}/></div></>
                     :
                     children
             }

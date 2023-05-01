@@ -1,0 +1,18 @@
+.Camplink{
+    color: cornflowerblue;
+    text-decoration: underline;
+}
+.Camplink:hover{
+    cursor: pointer;
+    color: purple;
+    text-decoration: none;
+}
+.AddressClassTD{
+    overflow-y: hidden;
+}
+.AddressClass{
+    font-size: 1rem;
+}
+.AddressClass:hover{
+    cursor: pointer;
+}

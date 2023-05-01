@@ -6,17 +6,19 @@ export default function useInput(type,placeholder) {
 
     function handleChange(e){
         // console.log(e.target.value)
-        setData(e.target.value)
+        e.target
+        ? setData(e.target.value)
+        : setData(e)
     }
-  
+    const className = 'form-control' 
     return (
         {
+            className,
             type,
             onChange:handleChange,
             value:data,
             placeholder,
-            required:true,
-            setData
+            required:true
         }
   )
 }

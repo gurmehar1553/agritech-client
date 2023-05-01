@@ -9,10 +9,6 @@ function Management(props) {
   const { theme } = useUser()
   const [widgets, setWidgets] = useState([
     {
-      category: "campaign",
-      id: "current-campaign"
-    },
-    {
       category: "inventory",
       id: "current-inventory"
     },
@@ -21,41 +17,31 @@ function Management(props) {
       id: "current-pipeline"
     },
     {
-      title: "Transaction History",
-      id: "transaction-history"
-    },
-    {
-      title: "Order Details",
-      id: "current-order"
-    },
-    {
-      title: "Order History",
-      id: "order-history"
+      title: "Current Plan",
+      id: "current-plan"
     }
   ])
 
   useEffect(() => {
     setTimeout(() => {
       setLoading(false)
-    }, 2234);
+    }, 200);
   }, [])
 
   return (
     <div className={`management-container theme-${theme}`}>
-      <div className="widgets-section management-widgets">
+      <div className="widgets-section management-widgets d-flex">
         {
           widgets.map((widget) => {
             return (
-              <>
-                <div className={`widget ${loading ? "skeleton-widget" : "no-skeleton-widget"}`}>
-                  {
-                    loading ? <></> :
-                      <>
-                        {renderWidget(widget.id, widget.data)}
-                      </>
-                  }
-                </div>
-              </>
+              <div key={widget.id} className={`widget ${loading ? "skeleton-widget" : "no-skeleton-widget"}`}>
+                {
+                  loading ? <></> :
+                    <>
+                      {renderWidget(widget.id, widget.data)}
+                    </>
+                }
+              </div>
             )
           })
         }
